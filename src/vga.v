@@ -1,8 +1,7 @@
 module vga (
     input CLK,
-    output [7:0] R,
-    output [7:0] G,
-    output [7:0] B,
+	 input [7:0] COL_IN,
+	 output [7:0] OUT,
     output HS,
     output VS
 );
@@ -11,6 +10,18 @@ wire [9:0] h_cnt;
 wire [9:0] v_cnt;
 
 wire next_line;
+wire CLK_25Mhz;
+
+prescaler #(
+	 .MODULO(4),
+	 .W(2)
+)
+MHz25
+(
+	 .CLK(CLK),
+	 .CE(1'd1),
+	 .CEO(CLK_25MHz)
+);
 
 up_cnt_mod #(
     .MODULO(800),
@@ -19,7 +30,7 @@ up_cnt_mod #(
 hor_cnt
 (
     .CLK(CLK),
-    .CE(1'd1),      
+    .CE(CLK_25MHz),      
     .CLR(1'd0),
     .Q(h_cnt),
     .CO(next_line)
@@ -45,8 +56,7 @@ assign VS = v_cnt < 2'd2;
 
 assign DRAW = (h_cnt > 8'd143 & h_cnt < 10'd785) & (v_cnt > 6'd34 &  v_cnt < 10'd516);
 
-assign R = 8'd255;
-assign G = 8'd127;
-assign B = 8'd64;   
+
+assign OUT = DRAW ? COL_IN : 8'd0;
 
 endmodule
